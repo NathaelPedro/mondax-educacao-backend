@@ -7,8 +7,8 @@ const PORT = process.env.PORT || 3000;
 const SPREADSHEET_ID = '19qGfL4IqwADP9cIAQlnW2TwrM4NgDGk6a8YMY8RNFFY';
 const SHEET_NAME = "MONDAX EDUCAÇÃO";
 
-// Parse da variável de ambiente com as credenciais JSON
-const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+// Parse da variável de ambiente com as credenciais JSON (somente uma variável)
+const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
 
 // Cria o cliente de autenticação GoogleAuth apenas uma vez
 const auth = new google.auth.GoogleAuth({
