@@ -5,7 +5,10 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const CREDENTIALS_PATH = path.join(__dirname, 'credentials.json');
+const auth = new google.auth.GoogleAuth({
+  credentials,
+  scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+});
 const SPREADSHEET_ID = '19qGfL4IqwADP9cIAQlnW2TwrM4NgDGk6a8YMY8RNFFY';
 
 // Nome exato da aba da planilha, com acento e símbolos
