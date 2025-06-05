@@ -45,18 +45,17 @@ module.exports = async function handler(req, res) {
     if (req.url === '/' || req.url === '') {
       return res.status(200).send('Servidor rodando! Use /dados?sheet=nome_da_aba para ver os dados.');
     }
-    
+
     if (req.url.startsWith('/dados')) {
-      const url = new URL(req.url, `http://${req.headers.host}`);
-      const sheetName = url.searchParams.get('sheet');
-      
+      const sheetName = req.query.sheet;
+
       if (!sheetName || !sheetsAllowed.includes(sheetName)) {
         return res.status(400).json({
           sucesso: false,
           erro: 'Sheet inválida ou não informada. Use um dos seguintes: ' + sheetsAllowed.join(', '),
         });
       }
-      
+
       try {
         const dadosArray = await lerPlanilha(sheetName);
         const dados = transformarEmObjetos(dadosArray);
@@ -66,9 +65,9 @@ module.exports = async function handler(req, res) {
         return res.status(500).json({ sucesso: false, erro: error.message });
       }
     }
-    
+
     return res.status(404).send('Rota não encontrada.');
   }
-  
+
   return res.status(405).send('Método não permitido.');
 };
