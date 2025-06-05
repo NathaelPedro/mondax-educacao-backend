@@ -1,26 +1,26 @@
 const express = require('express');
 const { google } = require('googleapis');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const CREDENTIALS_PATH = path.join(__dirname, 'credentials.json');
 const SPREADSHEET_ID = '19qGfL4IqwADP9cIAQlnW2TwrM4NgDGk6a8YMY8RNFFY';
 
 // Nome exato da aba da planilha, com acento e símbolos
 const SHEET_NAME = "MONDAX+EDUCAÇÃO";
 
 async function lerPlanilha() {
-  // Parse JSON da variável de ambiente
-  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
-
   const auth = new google.auth.GoogleAuth({
-    credentials,
+    keyFile: CREDENTIALS_PATH,
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
   });
 
   const client = await auth.getClient();
   const sheets = google.sheets({ version: 'v4', auth: client });
 
+  // Atualizado para pegar o intervalo completo da planilha
   const range = `'${SHEET_NAME}'!A1:AD14`;
   console.log('Range usado:', range);
 
