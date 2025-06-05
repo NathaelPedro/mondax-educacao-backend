@@ -11,6 +11,11 @@ const sheetsAllowed = ['MONDAX+EDUCAÇÃO', 'alunos', 'usuarios'];
 
 // Parse da variável de ambiente com as credenciais JSON
 const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+console.log('Credenciais carregadas:', {
+  project_id: credentials.project_id,
+  client_email: credentials.client_email,
+  private_key_id: credentials.private_key_id,
+});  // não exibe private_key para segurança
 
 const auth = new google.auth.GoogleAuth({
   credentials,
