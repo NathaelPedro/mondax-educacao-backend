@@ -5,34 +5,35 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const SPREADSHEET_ID = '19qGfL4IqwADP9cIAQlnW2TwrM4NgDGk6a8YMY8RNFFY';
-const SHEET_NAME = "MONDAX EDUCAÇÃO";
 
-// Parse da variável de ambiente com as credenciais JSON (somente uma variável)
+// Lista das abas válidas
+const sheetsAllowed = ['MONDAX+EDUCAÇÃO', 'alunos', 'usuarios'];
+
+// Parse da variável de ambiente com as credenciais JSON
 const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
 
-// Cria o cliente de autenticação GoogleAuth apenas uma vez
 const auth = new google.auth.GoogleAuth({
   credentials,
   scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
 });
 
-async function lerPlanilha() {
+async function lerPlanilha(sheetName, range = 'A1:AD14') {
   const client = await auth.getClient();
   const sheets = google.sheets({ version: 'v4', auth: client });
 
-  const range = `'${SHEET_NAME}'!A1:AD14`;
-  console.log('Range usado:', range);
+  const rangeStr = `'${sheetName}'!${range}`;
+  console.log('Range usado:', rangeStr);
 
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
-    range,
+    range: rangeStr,
   });
 
   return res.data.values;
 }
 
-// Converte array de arrays em array de objetos
 function transformarEmObjetos(dadosArray) {
+  if (!dadosArray || dadosArray.length === 0) return [];
   const [header, ...rows] = dadosArray;
   return rows.map(row => {
     const obj = {};
@@ -44,14 +45,22 @@ function transformarEmObjetos(dadosArray) {
 }
 
 app.get('/', (req, res) => {
-  res.send('Servidor rodando! Acesse /dados para ver os dados da planilha.');
+  res.send('Servidor rodando! Use /dados?sheet=nome_da_aba para ver os dados.');
 });
 
 app.get('/dados', async (req, res) => {
   try {
-    const dadosArray = await lerPlanilha();
+    const sheetName = req.query.sheet;
+    if (!sheetName || !sheetsAllowed.includes(sheetName)) {
+      return res.status(400).json({
+        sucesso: false,
+        erro: 'Sheet inválida ou não informada. Use um dos seguintes: ' + sheetsAllowed.join(', '),
+      });
+    }
+
+    const dadosArray = await lerPlanilha(sheetName);
     const dados = transformarEmObjetos(dadosArray);
-    res.json({ sucesso: true, dados });
+    res.json({ sucesso: true, sheet: sheetName, dados });
   } catch (error) {
     console.error(error);
     res.status(500).json({ sucesso: false, erro: error.message });
