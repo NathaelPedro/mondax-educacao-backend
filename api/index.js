@@ -1,9 +1,9 @@
-const sheetsAllowed = ['aba1', 'aba2', 'aba3']; // Exemplo das abas permitidas
+const sheetsAllowed = ['aba1', 'aba2', 'aba3']; // Abas permitidas
 
-// Função fictícia que lê a planilha e retorna array de dados
+// Função que lê a planilha (exemplo)
 async function lerPlanilha(sheetName) {
-  // Seu código para ler a planilha via API Google Sheets
-  // Por enquanto, um exemplo fixo para teste:
+  // Coloque aqui sua lógica para ler a planilha pelo Google Sheets API
+  // Exemplo fixo para teste:
   return [
     ['id', 'nome', 'nota'],
     [1, 'João', 8.5],
@@ -11,7 +11,7 @@ async function lerPlanilha(sheetName) {
   ];
 }
 
-// Função fictícia que transforma array em objetos
+// Função para transformar array em objetos
 function transformarEmObjetos(dadosArray) {
   const [header, ...rows] = dadosArray;
   return rows.map(row => {
@@ -44,6 +44,19 @@ module.exports = async function handler(req, res) {
         erro: 'Sheet inválida ou não informada. Use um dos seguintes: ' + sheetsAllowed.join(', '),
       });
     }
+
+    try {
+      const dadosArray = await lerPlanilha(sheetName);
+      const dados = transformarEmObjetos(dadosArray);
+      return res.status(200).json({ sucesso: true, dados });
+    } catch (error) {
+      return res.status(500).json({ sucesso: false, erro: error.message });
+    }
+  }
+
+  if (pathname === '/index.js') {
+    // Retorna os dados da aba padrão (exemplo: 'aba1')
+    const sheetName = 'aba1';
 
     try {
       const dadosArray = await lerPlanilha(sheetName);
