@@ -38,13 +38,16 @@ module.exports = async function handler(req, res) {
     return res.status(405).send('Método não permitido.');
   }
 
+  // Exemplo: req.url pode ser "/api", "/api/dados?sheet=alunos", etc.
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname;
 
-  if (pathname === '/' || pathname === '/api') {
+  // Para rota /api ou /api/
+  if (pathname === '/api' || pathname === '/api/') {
     return res.status(200).send('Servidor rodando! Use /api/dados?sheet=nome_da_aba para ver os dados.');
   }
 
+  // Para rota /api/dados?sheet=nome_da_aba
   if (pathname === '/api/dados') {
     const sheetName = url.searchParams.get('sheet');
     if (!sheetName || !sheetsAllowed.includes(sheetName)) {
