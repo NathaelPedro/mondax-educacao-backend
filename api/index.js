@@ -23,7 +23,6 @@ function transformarEmObjetos(dadosArray) {
   });
 }
 
-// Só uma vez exporta o handler!
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).send('Método não permitido.');
@@ -32,7 +31,9 @@ module.exports = async function handler(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname;
 
-  if (pathname === '/' || pathname === '') {
+  console.log('Request pathname:', pathname); // Só para debug, pode remover depois
+
+  if (pathname === '/' || pathname === '' || pathname === '/api') {
     return res.status(200).send('Servidor rodando! Use /dados?sheet=nome_da_aba para ver os dados.');
   }
 
