@@ -14,10 +14,14 @@ async function lerPlanilha(sheetName, range = 'A1:AD14') {
   const client = await auth.getClient();
   const sheets = google.sheets({ version: 'v4', auth: client });
   const rangeStr = `'${sheetName}'!${range}`;
+
+  console.log(`📄 Lendo planilha: ${sheetName}, intervalo: ${rangeStr}`);
+
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
     range: rangeStr,
   });
+
   return res.data.values;
 }
 
@@ -38,19 +42,20 @@ module.exports = async function handler(req, res) {
     return res.status(405).send('Método não permitido.');
   }
 
-  // Exemplo: req.url pode ser "/api", "/api/dados?sheet=alunos", etc.
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname;
 
-  // Para rota /api ou /api/
   if (pathname === '/api' || pathname === '/api/') {
     return res.status(200).send('Servidor rodando! Use /api/dados?sheet=nome_da_aba para ver os dados.');
   }
 
-  // Para rota /api/dados?sheet=nome_da_aba
   if (pathname === '/api/dados') {
     const sheetName = url.searchParams.get('sheet');
+
+    console.log(`🔍 Requisição recebida para sheet: "${sheetName}"`);
+
     if (!sheetName || !sheetsAllowed.includes(sheetName)) {
+      console.warn(`⚠️ Sheet inválida ou não permitida: "${sheetName}"`);
       return res.status(400).json({
         sucesso: false,
         erro: 'Sheet inválida ou não informada. Use um dos seguintes: ' + sheetsAllowed.join(', '),
@@ -60,8 +65,12 @@ module.exports = async function handler(req, res) {
     try {
       const dadosArray = await lerPlanilha(sheetName);
       const dados = transformarEmObjetos(dadosArray);
+
+      console.log(`✅ Dados obtidos da aba "${sheetName}" com ${dados.length} registros`);
+
       return res.status(200).json({ sucesso: true, sheet: sheetName, dados });
     } catch (error) {
+      console.error(`❌ Erro ao ler a aba "${sheetName}":`, error.message);
       return res.status(500).json({ sucesso: false, erro: error.message });
     }
   }
