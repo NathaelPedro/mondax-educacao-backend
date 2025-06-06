@@ -1,73 +1,16 @@
-const { google } = require('googleapis');
+const express = require('express');
+const cors = require('cors');
+const serverless = require('serverless-http');
 
-// ID da planilha Google
-const SPREADSHEET_ID = '19qGfL4IqwADP9cIAQlnW2TwrM4NgDGk6a8YMY8RNFFY';
+const app = express();
 
-// Abas permitidas
-const sheetsAllowed = ['MONDAX+EDUCAÇÃO', 'alunos', 'usuarios'];
+app.use(cors());
+app.use(express.json());
 
-// Carrega credenciais da variável de ambiente
-const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-
-const auth = new google.auth.GoogleAuth({
-  credentials,
-  scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+// Rota de teste
+app.get('/', (req, res) => {
+  res.json({ message: 'API funcionando na Vercel!' });
 });
 
-async function lerPlanilha(sheetName, range = 'A1:AD14') {
-  const client = await auth.getClient();
-  const sheets = google.sheets({ version: 'v4', auth: client });
-
-  const rangeStr = `'${sheetName}'!${range}`;
-
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range: rangeStr,
-  });
-
-  return res.data.values;
-}
-
-function transformarEmObjetos(dadosArray) {
-  if (!dadosArray || dadosArray.length === 0) return [];
-  const [header, ...rows] = dadosArray;
-  return rows.map(row => {
-    const obj = {};
-    header.forEach((col, i) => {
-      obj[col] = row[i] !== undefined ? row[i] : null;
-    });
-    return obj;
-  });
-}
-
-module.exports = async function handler(req, res) {
-  if (req.method === 'GET') {
-    if (req.url === '/' || req.url === '') {
-      return res.status(200).send('Servidor rodando! Use /dados?sheet=nome_da_aba para ver os dados.');
-    }
-
-    if (req.url.startsWith('/dados')) {
-      const sheetName = req.query.sheet;
-
-      if (!sheetName || !sheetsAllowed.includes(sheetName)) {
-        return res.status(400).json({
-          sucesso: false,
-          erro: 'Sheet inválida ou não informada. Use um dos seguintes: ' + sheetsAllowed.join(', '),
-        });
-      }
-
-      try {
-        const dadosArray = await lerPlanilha(sheetName);
-        const dados = transformarEmObjetos(dadosArray);
-        return res.status(200).json({ sucesso: true, sheet: sheetName, dados });
-      } catch (error) {
-        console.error(error);
-        return res.status(500).json({ sucesso: false, erro: error.message });
-      }
-    }
-
-    return res.status(404).send('Rota não encontrada.');
-  }
-
-  return res.status(405).send('Método não permitido.');
-};
+// Exporte como handler para Vercel
+module.exports.handler = serverless(app);
