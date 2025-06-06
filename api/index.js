@@ -1,23 +1,33 @@
-const sheetsAllowed = ['aba1', 'aba2', 'aba3']; // Abas permitidas
+const { google } = require('googleapis');
 
-// Função que lê a planilha (exemplo)
-async function lerPlanilha(sheetName) {
-  // Coloque aqui sua lógica para ler a planilha pelo Google Sheets API
-  // Exemplo fixo para teste:
-  return [
-    ['id', 'nome', 'nota'],
-    [1, 'João', 8.5],
-    [2, 'Maria', 9.0],
-  ];
+const SPREADSHEET_ID = '19qGfL4IqwADP9cIAQlnW2TwrM4NgDGk6a8YMY8RNFFY';
+const sheetsAllowed = ['MONDAX+EDUCAÇÃO', 'alunos', 'usuarios'];
+
+const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+
+const auth = new google.auth.GoogleAuth({
+  credentials,
+  scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+});
+
+async function lerPlanilha(sheetName, range = 'A1:AD14') {
+  const client = await auth.getClient();
+  const sheets = google.sheets({ version: 'v4', auth: client });
+  const rangeStr = `'${sheetName}'!${range}`;
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range: rangeStr,
+  });
+  return res.data.values;
 }
 
-// Função para transformar array em objetos
 function transformarEmObjetos(dadosArray) {
+  if (!dadosArray || dadosArray.length === 0) return [];
   const [header, ...rows] = dadosArray;
   return rows.map(row => {
     const obj = {};
-    header.forEach((key, i) => {
-      obj[key] = row[i];
+    header.forEach((col, i) => {
+      obj[col] = row[i] !== undefined ? row[i] : null;
     });
     return obj;
   });
@@ -31,15 +41,12 @@ module.exports = async function handler(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname;
 
-  console.log('Request pathname:', pathname); // Só para debug, pode remover depois
-
-  if (pathname === '/' || pathname === '' || pathname === '/api') {
-    return res.status(200).send('Servidor rodando! Use /dados?sheet=nome_da_aba para ver os dados.');
+  if (pathname === '/' || pathname === '/api') {
+    return res.status(200).send('Servidor rodando! Use /api/dados?sheet=nome_da_aba para ver os dados.');
   }
 
-  if (pathname === '/dados') {
+  if (pathname === '/api/dados') {
     const sheetName = url.searchParams.get('sheet');
-
     if (!sheetName || !sheetsAllowed.includes(sheetName)) {
       return res.status(400).json({
         sucesso: false,
@@ -50,20 +57,7 @@ module.exports = async function handler(req, res) {
     try {
       const dadosArray = await lerPlanilha(sheetName);
       const dados = transformarEmObjetos(dadosArray);
-      return res.status(200).json({ sucesso: true, dados });
-    } catch (error) {
-      return res.status(500).json({ sucesso: false, erro: error.message });
-    }
-  }
-
-  if (pathname === '/index.js') {
-    // Retorna os dados da aba padrão (exemplo: 'aba1')
-    const sheetName = 'aba1';
-
-    try {
-      const dadosArray = await lerPlanilha(sheetName);
-      const dados = transformarEmObjetos(dadosArray);
-      return res.status(200).json({ sucesso: true, dados });
+      return res.status(200).json({ sucesso: true, sheet: sheetName, dados });
     } catch (error) {
       return res.status(500).json({ sucesso: false, erro: error.message });
     }
