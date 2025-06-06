@@ -23,6 +23,7 @@ function transformarEmObjetos(dadosArray) {
   });
 }
 
+// Só uma vez exporta o handler!
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).send('Método não permitido.');
