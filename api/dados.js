@@ -54,6 +54,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ sucesso: true, dados: dadosFormatados });
   } catch (error) {
     console.error('Erro ao buscar dados:', error);
-    return res.status(500).json({ erro: 'Erro ao buscar dados da planilha.' });
+    return res.status(500).json({
+      erro: 'Erro ao buscar dados da planilha.',
+      detalhes: error.message,
+    });
   }
 }
