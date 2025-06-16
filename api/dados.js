@@ -3,7 +3,17 @@ import { google } from 'googleapis';
 const SPREADSHEET_ID = '19qGfL4IqwADP9cIAQlnW2TwrM4NgDGk6a8YMY8RNFFY';
 const sheetsAllowed = ['MONDAX EDUCAÇÃO', 'ALUNOS', 'USUARIOS'];
 
-const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+let credentials;
+
+try {
+  console.log('GOOGLE_CREDENTIALS raw:', process.env.GOOGLE_CREDENTIALS);
+  credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+  console.log('credentials.client_email:', credentials.client_email);
+} catch (e) {
+  console.error('Erro ao parsear GOOGLE_CREDENTIALS:', e);
+  // Pode decidir falhar aqui ou seguir com credentials undefined
+  credentials = null;
+}
 
 const auth = new google.auth.GoogleAuth({
   credentials,
@@ -47,6 +57,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ erro: 'Planilha inválida ou não especificada.' });
   }
 
+  if (!credentials) {
+    return res.status(500).json({ erro: 'Credenciais do Google não configuradas corretamente.' });
+  }
+
   try {
     const dadosBrutos = await lerPlanilha(sheet);
     const dadosFormatados = transformarEmObjetos(dadosBrutos);
@@ -54,9 +68,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ sucesso: true, dados: dadosFormatados });
   } catch (error) {
     console.error('Erro ao buscar dados:', error);
-    return res.status(500).json({
-      erro: 'Erro ao buscar dados da planilha.',
-      detalhes: error.message,
-    });
+    return res.status(500).json({ erro: 'Erro ao buscar dados da planilha.', detalhes: error.message });
   }
 }
