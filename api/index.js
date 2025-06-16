@@ -1,7 +1,7 @@
 const { google } = require('googleapis');
 
 const SPREADSHEET_ID = '19qGfL4IqwADP9cIAQlnW2TwrM4NgDGk6a8YMY8RNFFY';
-const sheetsAllowed = ['MONDAX+EDUCAÇÃO', 'ALUNOS', 'USUARIOS'];
+const sheetsAllowed = ['MONDAX EDUCAÇÃO', 'ALUNOS', 'USUARIOS'];
 
 const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
 
@@ -70,7 +70,7 @@ module.exports = async function handler(req, res) {
 
       return res.status(200).json({ sucesso: true, sheet: sheetName, dados });
     } catch (error) {
-      console.error(`❌ Erro ao ler a aba "${sheetName}":`, error.message);
+      console.error(`❌ Erro ao ler a aba "${sheetName}":`, error);
       return res.status(500).json({ sucesso: false, erro: error.message });
     }
   }
