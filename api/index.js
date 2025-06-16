@@ -1,7 +1,7 @@
 const { google } = require('googleapis');
 
 const SPREADSHEET_ID = '19qGfL4IqwADP9cIAQlnW2TwrM4NgDGk6a8YMY8RNFFY';
-const sheetsAllowed = ['MONDAX EDUCAÇÃO', 'ALUNOS', 'USUARIOS'];
+const sheetsAllowed = ['MONDAX+EDUCAÇÃO', 'ALUNOS', 'USUARIOS'];
 
 const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
 
