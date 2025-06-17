@@ -11,7 +11,6 @@ try {
   console.log('credentials.client_email:', credentials.client_email);
 } catch (e) {
   console.error('Erro ao parsear GOOGLE_CREDENTIALS:', e);
-  // Pode decidir falhar aqui ou seguir com credentials undefined
   credentials = null;
 }
 
@@ -51,6 +50,15 @@ function transformarEmObjetos(dadosArray) {
 }
 
 export default async function handler(req, res) {
+  // Libera o CORS para todas as origens
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end(); // Resposta rápida para preflight CORS
+  }
+
   const { sheet } = req.query;
 
   if (!sheet || !sheetsAllowed.includes(sheet)) {
